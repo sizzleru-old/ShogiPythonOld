@@ -1,11 +1,12 @@
 # Imports
 from pygame import Color
 from pygame.locals import *
+#from shapely.geometry import Point
+#from shapely.geometry.polygon import Polygon
 
 import pygame
-import sys
 import math
-import os
+import numpy
 
 
 # Shogi program
@@ -93,91 +94,65 @@ def shogi_run():
     sg = pygame.image.load("Pieces_tilted//SG0_tilt.png")
     sb = pygame.image.load("Pieces_tilted//SB0_tilt.png")
     sr = pygame.image.load("Pieces_tilted//SR0_tilt.png")
-    gp = pygame.image.load("Pieces_tilted//GP0_tilt.png")
-    gl = pygame.image.load("Pieces_tilted//GL0_tilt.png")
-    gn = pygame.image.load("Pieces_tilted//GN0_tilt.png")
-    gs = pygame.image.load("Pieces_tilted//GS0_tilt.png")
-    gg = pygame.image.load("Pieces_tilted//GG0_tilt.png")
-    gb = pygame.image.load("Pieces_tilted//GB0_tilt.png")
-    gr = pygame.image.load("Pieces_tilted//GR0_tilt.png")
 
-    # Bishop info
-    bishop_br_width = 10
-    bishop_br_height = 9
-    bishop_width = 72
-    bishop_height = 87
+    # Corner info of tilted pieces
+    corner_pos = {}
 
-    # Rook info
-    rook_bl_width = 6
-    rook_bl_height = 8
-    rook_width = 72
-    rook_height = 89
+    corner_pos['Bishop 1'] = (23,6)
+    corner_pos['Bishop 2'] = (40,3)
+    corner_pos['Bishop 3'] = (62,11)
+    corner_pos['Bishop 4'] = (62,78)
+    corner_pos['Bishop 5'] = (3,69)
 
-    # Knight info
-    knight_tr_width = 24
-    knight_tr_height = 14
-    knight_tl_width = 23
-    knight_tl_height = 14
-    knight_width = 86
-    knight_height = 86
+    corner_pos['Rook 1'] = (4,14)
+    corner_pos['Rook 2'] = (24,5)
+    corner_pos['Rook 3'] = (44,7)
+    corner_pos['Rook 4'] = (65,72)
+    corner_pos['Rook 5'] = (5,81)
 
-    # Silver info
-    silver_tl_width = 5
-    silver_tl_height = 19
-    silver_tr_width = 38
-    silver_tr_height = 6
-    silver_width = 79
-    silver_height = 91
+    corner_pos['Pawn 1'] = (47,3)
+    corner_pos['Pawn 2'] = (71,11)
+    corner_pos['Pawn 3'] = (80,26)
+    corner_pos['Pawn 4'] = (50,84)
+    corner_pos['Pawn 5'] = (2,48)
 
-    # Gold info
-    gold_tl_width = 3
-    gold_tl_height = 29
-    gold_tr_width = 55
-    gold_tr_height = 7
-    gold_width = 91
-    gold_height = 94
+    corner_pos['Lance 1'] = (33,3)
+    corner_pos['Lance 2'] = (57,5)
+    corner_pos['Lance 3'] = (70,16)
+    corner_pos['Lance 4'] = (60,80)
+    corner_pos['Lance 5'] = (4,62)
 
-    # Lance info
-    lance_tl_width = 34
-    lance_tl_height = 4
-    lance_tr_width = 9
-    lance_tr_height = 15
-    lance_width = 91
-    lance_height = 94
+    corner_pos['Knight 1'] = (22,13)
+    corner_pos['Knight 2'] = (42,7)
+    corner_pos['Knight 3'] = (62,13)
+    corner_pos['Knight 4'] = (72,78)
+    corner_pos['Knight 5'] = (12,78)
 
-    # Pawn info
-    pawn_tl_width = 49
-    pawn_tl_height = 3
-    pawn_tr_width = 7
-    pawn_tr_height = 26
-    pawn_width = 87
-    pawn_height = 87
+    corner_pos['Silver 1'] = (2,17)
+    corner_pos['Silver 2'] = (18,16)
+    corner_pos['Silver 3'] = (41,6)
+    corner_pos['Silver 4'] = (72,64)
+    corner_pos['Silver 5'] = (79,91)
+
+    corner_pos['Gold 1'] = (3,29)
+    corner_pos['Gold 2'] = (15,12)
+    corner_pos['Gold 3'] = (36,6)
+    corner_pos['Gold 4'] = (81,52)
+    corner_pos['Gold 5'] = (34,86)
 
     # Stand piece positions
-    bishop_pos = (stand_size / 2 - bishop_width + bishop_br_width - 2,
-                  stand_size / 2 - bishop_height + bishop_br_height)
-    
-    rook_pos = (stand_size / 2 - rook_bl_width ,
-                stand_size / 2 + rook_bl_height - rook_height)
-    
-    knight_pos = (stand_size / 2 - knight_width/2,
-                  3 * stand_size / 4 - knight_height/2)
-    
-    silver_pos = (knight_pos[0] + (knight_width - knight_tr_width) - silver_tl_width + 2,
-                  knight_pos[1] + knight_tr_height - silver_tl_height)
-
-    gold_pos = (silver_pos[0] + (silver_width - silver_tr_width) - gold_tl_width + 1,
-                  silver_pos[1] + silver_tr_height - gold_tl_height)
-
-    lance_pos = (knight_pos[0] - knight_tl_width - lance_tl_width + lance_tr_width - 1,
-                  knight_pos[1] - knight_tl_height + lance_tr_height - 1)
-
-    pawn_pos = (lance_pos[0] + lance_tl_width - pawn_width + pawn_tr_width - 2,
-                  lance_pos[1] + lance_tl_height - pawn_tr_height)
+    bishop_pos = numpy.subtract((stand_size / 2), corner_pos['Bishop 4'])
+    rook_pos = numpy.subtract((stand_size / 2), corner_pos['Rook 5'])
+    knight_pos = (stand_size / 2 - square_size / 2, 3 * stand_size / 4 - square_size / 2)
+    silver_pos = numpy.add(numpy.subtract(knight_pos, corner_pos['Silver 1']), corner_pos['Knight 3'])
+    gold_pos = numpy.add(numpy.subtract(silver_pos, corner_pos['Gold 1']), corner_pos['Silver 3'])
+    lance_pos = numpy.add(numpy.subtract(knight_pos, corner_pos['Lance 3']), corner_pos['Knight 1'])
+    pawn_pos = numpy.add(numpy.subtract(lance_pos, corner_pos['Pawn 3']), corner_pos['Lance 1'])
 
     # Other info
-    display_distance = stand_size/8
+    font_height = 16
     angle = 9.205
+
     # States
     piece_state = [['GL0', 'GN0','GS0', 'GG0', 'GK0', 'GG0', 'GS0', 'GN0', 'GL0'],
                    ['', 'GR0', '', '', '', '', '', 'GB0', ''],
@@ -187,7 +162,7 @@ def shogi_run():
                    ['']*9,
                    ['SP0']*9,
                    ['', 'SB0', '', '', '', '', '', 'SR0', ''],
-                   ['SL0', 'SN0','SS0', 'SG0', 'SK0', 'SS0', 'SG0', 'SN0', 'SL0']]
+                   ['SL0', 'SN0','SS0', 'SG0', 'SK0', 'SG0', 'SS0', 'SN0', 'SL0']]
 
     highlight_state = [['']*9,
                        ['']*9,
@@ -199,7 +174,8 @@ def shogi_run():
                        ['']*9,
                        ['']*9]
 
-    stand_state = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]
+    stand_state = [[0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0]]
 
     # Drawing the pieces
     def draw_pieces():
@@ -217,71 +193,110 @@ def shogi_run():
         
         stand_surface_sente.fill(Color(0,0,0,0))
         stand_surface_gote.fill(Color(0,0,0,0))
-        
+
         for sente_piece_index in range(len(stand_state[0])):
             if stand_state[0][sente_piece_index] != 0:
                 if sente_piece_index == 6:
                     stand_surface_sente.blit(sr, rook_pos)
 
                     display_quantity(stand_state[0][sente_piece_index],
-                                     ((rook_pos)[0] - display_distance * math.cos(angle), rook_pos[1] - display_distance * math.sin(angle)))
-
+                                     numpy.add(numpy.add(corner_pos['Rook 2'], rook_pos), (0, - font_height)), 'S')
 
                 elif sente_piece_index == 5:
                     stand_surface_sente.blit(sb, bishop_pos)
 
                     display_quantity(stand_state[0][sente_piece_index],
-                                     ((bishop_pos)[0] + display_distance * math.cos(angle) + bishop_width, - bishop_br_height + bishop_pos[1] + display_distance * math.sin(angle)))
-                
+                                     numpy.add(numpy.add(corner_pos['Bishop 2'], bishop_pos), (0, - font_height)), 'S')
+
+
                 elif sente_piece_index == 4:
                     stand_surface_sente.blit(sg, gold_pos)
 
                     display_quantity(stand_state[0][sente_piece_index],
-                                     ((rook_pos)[0] + display_distance * math.cos(angle), rook_pos[1] + display_distance * math.sin(angle)))
+                                     numpy.add(numpy.add(corner_pos['Gold 2'], gold_pos), (0, - font_height)), 'S')
 
                 elif sente_piece_index == 3:
                     stand_surface_sente.blit(ss, silver_pos)
 
+                    display_quantity(stand_state[0][sente_piece_index],
+                                     numpy.add(numpy.add(corner_pos['Silver 2'], silver_pos), (0, - font_height)), 'S')
+
                 elif sente_piece_index == 2:
                     stand_surface_sente.blit(sn, knight_pos)
+
+                    display_quantity(stand_state[0][sente_piece_index],
+                                     numpy.add(numpy.add(corner_pos['Knight 2'], knight_pos), (0, - font_height)), 'S')
 
                 elif sente_piece_index == 1:
                     stand_surface_sente.blit(sl, lance_pos)
 
+                    display_quantity(stand_state[0][sente_piece_index],
+                                     numpy.add(numpy.add(corner_pos['Lance 2'], lance_pos), (0, - font_height)), 'S')
+
                 elif sente_piece_index == 0:
                     stand_surface_sente.blit(sp, pawn_pos)
-                    
+
+                    display_quantity(stand_state[0][sente_piece_index],
+                                     numpy.add(numpy.add(corner_pos['Pawn 2'], pawn_pos), (0, - font_height)), 'S')
+
         for gote_piece_index in range(len(stand_state[1])):
             if stand_state[1][gote_piece_index] != 0:
                 if gote_piece_index == 6:
                     stand_surface_gote.blit(sr, rook_pos)
 
+                    display_quantity(stand_state[1][gote_piece_index],
+                                     numpy.add(numpy.add(corner_pos['Rook 2'], rook_pos), (0, - font_height)), 'G')
+
                 elif gote_piece_index == 5:
                     stand_surface_gote.blit(sb, bishop_pos)
-                
+
+                    display_quantity(stand_state[1][gote_piece_index],
+                                     numpy.add(numpy.add(corner_pos['Bishop 2'], bishop_pos), (0, - font_height)), 'G')
+
                 elif gote_piece_index == 4:
                     stand_surface_gote.blit(sg, gold_pos)
+
+                    display_quantity(stand_state[1][gote_piece_index],
+                                     numpy.add(numpy.add(corner_pos['Gold 2'], gold_pos), (0, - font_height)), 'G')
 
                 elif gote_piece_index == 3:
                     stand_surface_gote.blit(ss, silver_pos)
 
+                    display_quantity(stand_state[1][gote_piece_index],
+                                     numpy.add(numpy.add(corner_pos['Silver 2'], silver_pos), (0, - font_height)), 'G')
+
                 elif gote_piece_index == 2:
                     stand_surface_gote.blit(sn, knight_pos)
+
+                    display_quantity(stand_state[1][gote_piece_index],
+                                     numpy.add(numpy.add(corner_pos['Knight 2'], knight_pos), (0, - font_height)), 'G')
 
                 elif gote_piece_index == 1:
                     stand_surface_gote.blit(sl, lance_pos)
 
+                    display_quantity(stand_state[1][gote_piece_index],
+                                     numpy.add(numpy.add(corner_pos['Lance 2'], lance_pos), (0, - font_height)), 'G')
+
                 elif gote_piece_index == 0:
                     stand_surface_gote.blit(sp, pawn_pos)
 
+                    display_quantity(stand_state[1][gote_piece_index],
+                                     numpy.add(numpy.add(corner_pos['Pawn 2'], pawn_pos), (0, - font_height)), 'G')
+
+
     # Display number of pieces
-    def display_quantity(quantity, position):
+    def display_quantity(quantity, position, side):
         pygame.font.init()
-        display_font = pygame.font.Font(None, 50)
+        display_font = pygame.font.Font(None, 30)
         display_surf = display_font.render(str(quantity), 1, (0, 0, 0))
 
-        stand_surface_sente.blit(display_surf, position)
-        
+        if side == 'S':
+            stand_surface_sente.blit(display_surf, position)
+
+        elif side == 'G':
+            stand_surface_gote.blit(display_surf, position)
+
+
     # Drawing the highlight
     def draw_highlight():
         highlight_surface.fill(Color(0,0,0,0))
@@ -333,7 +348,6 @@ def shogi_run():
 
             elif highlight_state[y_index][x_index] == 'S':
                 clear_highlight()
-                
 
     def move_piece(x_index, y_index):
         active = False
@@ -703,9 +717,6 @@ def shogi_run():
         for row in range(len(highlight_state)):
             for column in range(len(highlight_state[row])):
                 highlight_state[row][column] = ''
-
-              
-            
 
     # Render the board
     draw_screen()
