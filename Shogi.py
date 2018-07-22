@@ -1,9 +1,17 @@
 # Imports
 from pygame import Color
-from pygame.locals import *
-
 import pygame
-import math
+
+
+def t_maths(a, b, type):
+    if type == 'add':
+        return a[0] + b[0], a[1] + b[1]
+
+    elif type == 'subtract':
+        return a[0] - b[0], a[1] - b[1]
+
+    elif type == 'scalar':
+        return b[0] * a, b[1] * a
 
 
 # Tuple addition
@@ -13,10 +21,13 @@ def add_tuple(a, b):
 def subtract_tuple(a, b):
     return a[0] - b[0], a[1] - b[1]
 
+def multiply_tuple(a, b):
+    return b[0] * a, b[1] * a
+
+
 # Check if point is in polygon
 def inside_poly(x, y, poly):
     num = len(poly)
-    i = 0
     j = num - 1
     c = False
     for i in range(num):
@@ -27,6 +38,7 @@ def inside_poly(x, y, poly):
         j = i
     return c
 
+
 # Shogi program
 def shogi_run():
 
@@ -34,33 +46,24 @@ def shogi_run():
     size = screen_width, screen_height = 1620, 900
     screen = pygame.display.set_mode(size)
 
-    # Board margin
+    # Margins
     board_margin_top = 43
     board_margin_bottom = 43
     board_margin_right = 403
     board_margin_left = 403
-
-    # Stand margin
     stand_margin = 43
 
     # Dimensions
     line_width = 4
+    stand_size = 272
     board_size = screen_width - board_margin_right - board_margin_left
     square_size = int((board_size - 10 * line_width) / 9)
-    stand_size = 272
+
+    # Other info
+    font_height = 16
 
     # Load board
     board_image = pygame.image.load("Others//board.png").convert()
-
-    # Highlight
-    highlight = dict()
-
-    highlight['A'] = pygame.Surface((square_size, square_size), pygame.SRCALPHA)  # Attack
-    highlight['S'] = pygame.Surface((square_size, square_size), pygame.SRCALPHA)  # Select
-    highlight['M'] = pygame.image.load("Others//move.png").convert_alpha()  # Move
-
-    highlight['A'].fill((255, 0, 0, 120))
-    highlight['S'].fill((0, 255, 0, 120))
 
     # Surfaces
     board_surface = pygame.Surface((screen_width, screen_height))
@@ -72,39 +75,59 @@ def shogi_run():
     # Background
     board_surface.blit(board_image, (0, 0))
 
-    # Pieces
-    pieces = dict()
+    # Highlight
+    highlight = dict()
 
-    pieces['SP0'] = pygame.image.load("Pieces//SP0.png")
-    pieces['SL0'] = pygame.image.load("Pieces//SL0.png")
-    pieces['SN0'] = pygame.image.load("Pieces//SN0.png")
-    pieces['SS0'] = pygame.image.load("Pieces//SS0.png")
-    pieces['SG0'] = pygame.image.load("Pieces//SG0.png")
-    pieces['SB0'] = pygame.image.load("Pieces//SB0.png")
-    pieces['SR0'] = pygame.image.load("Pieces//SR0.png")
-    pieces['SK0'] = pygame.image.load("Pieces//SK0.png")
-    pieces['SP1'] = pygame.image.load("Pieces//SP1.png")
-    pieces['SL1'] = pygame.image.load("Pieces//SL1.png")
-    pieces['SN1'] = pygame.image.load("Pieces//SN1.png")
-    pieces['SS1'] = pygame.image.load("Pieces//SS1.png")
-    pieces['SB1'] = pygame.image.load("Pieces//SB1.png")
-    pieces['SR1'] = pygame.image.load("Pieces//SR1.png")
-    pieces['GP0'] = pygame.image.load("Pieces//GP0.png")
-    pieces['GL0'] = pygame.image.load("Pieces//GL0.png")
-    pieces['GN0'] = pygame.image.load("Pieces//GN0.png")
-    pieces['GS0'] = pygame.image.load("Pieces//GS0.png")
-    pieces['GG0'] = pygame.image.load("Pieces//GG0.png")
-    pieces['GB0'] = pygame.image.load("Pieces//GB0.png")
-    pieces['GR0'] = pygame.image.load("Pieces//GR0.png")
-    pieces['GK0'] = pygame.image.load("Pieces//GK0.png")
-    pieces['GP1'] = pygame.image.load("Pieces//GP1.png")
-    pieces['GL1'] = pygame.image.load("Pieces//GL1.png")
-    pieces['GN1'] = pygame.image.load("Pieces//GN1.png")
-    pieces['GS1'] = pygame.image.load("Pieces//GS1.png")
-    pieces['GB1'] = pygame.image.load("Pieces//GB1.png")
-    pieces['GR1'] = pygame.image.load("Pieces//GR1.png")
+    highlight['A'] = pygame.Surface((square_size, square_size), pygame.SRCALPHA)  # Attack
+    highlight['S'] = pygame.Surface((square_size, square_size), pygame.SRCALPHA)  # Select
+    highlight['M'] = pygame.image.load("Others//move.png").convert_alpha()  # Move
+
+    highlight['A'].fill((255, 0, 0, 120))
+    highlight['S'].fill((0, 255, 0, 120))
+
+    # Pieces
+    piece = dict()
+
+    piece['SP0'] = pygame.image.load("Pieces//SP0.png")
+    piece['SL0'] = pygame.image.load("Pieces//SL0.png")
+    piece['SN0'] = pygame.image.load("Pieces//SN0.png")
+    piece['SS0'] = pygame.image.load("Pieces//SS0.png")
+    piece['SG0'] = pygame.image.load("Pieces//SG0.png")
+    piece['SB0'] = pygame.image.load("Pieces//SB0.png")
+    piece['SR0'] = pygame.image.load("Pieces//SR0.png")
+    piece['SK0'] = pygame.image.load("Pieces//SK0.png")
+    piece['SP1'] = pygame.image.load("Pieces//SP1.png")
+    piece['SL1'] = pygame.image.load("Pieces//SL1.png")
+    piece['SN1'] = pygame.image.load("Pieces//SN1.png")
+    piece['SS1'] = pygame.image.load("Pieces//SS1.png")
+    piece['SB1'] = pygame.image.load("Pieces//SB1.png")
+    piece['SR1'] = pygame.image.load("Pieces//SR1.png")
+    piece['GP0'] = pygame.image.load("Pieces//GP0.png")
+    piece['GL0'] = pygame.image.load("Pieces//GL0.png")
+    piece['GN0'] = pygame.image.load("Pieces//GN0.png")
+    piece['GS0'] = pygame.image.load("Pieces//GS0.png")
+    piece['GG0'] = pygame.image.load("Pieces//GG0.png")
+    piece['GB0'] = pygame.image.load("Pieces//GB0.png")
+    piece['GR0'] = pygame.image.load("Pieces//GR0.png")
+    piece['GK0'] = pygame.image.load("Pieces//GK0.png")
+    piece['GP1'] = pygame.image.load("Pieces//GP1.png")
+    piece['GL1'] = pygame.image.load("Pieces//GL1.png")
+    piece['GN1'] = pygame.image.load("Pieces//GN1.png")
+    piece['GS1'] = pygame.image.load("Pieces//GS1.png")
+    piece['GB1'] = pygame.image.load("Pieces//GB1.png")
+    piece['GR1'] = pygame.image.load("Pieces//GR1.png")
 
     # Stand pieces
+    stand_piece = dict()
+
+    stand_piece['P'] = pygame.image.load("Pieces_tilted//SP0_tilt.png")
+    stand_piece['L'] = pygame.image.load("Pieces_tilted//SL0_tilt.png")
+    stand_piece['N'] = pygame.image.load("Pieces_tilted//SN0_tilt.png")
+    stand_piece['S'] = pygame.image.load("Pieces_tilted//SS0_tilt.png")
+    stand_piece['G'] = pygame.image.load("Pieces_tilted//SG0_tilt.png")
+    stand_piece['B'] = pygame.image.load("Pieces_tilted//SB0_tilt.png")
+    stand_piece['R'] = pygame.image.load("Pieces_tilted//SR0_tilt.png")
+
     sp = pygame.image.load("Pieces_tilted//SP0_tilt.png")
     sl = pygame.image.load("Pieces_tilted//SL0_tilt.png")
     sn = pygame.image.load("Pieces_tilted//SN0_tilt.png")
@@ -159,16 +182,26 @@ def shogi_run():
     corner_pos['Gold 5'] = (34, 86)
 
     # Stand piece positions
-    bishop_pos = subtract_tuple((stand_size / 2, stand_size / 2), corner_pos['Bishop 4'])
-    rook_pos = subtract_tuple((stand_size / 2, stand_size / 2), corner_pos['Rook 5'])
-    knight_pos = (stand_size / 2 - square_size / 2, 3 * stand_size / 4 - square_size / 2)
-    silver_pos = add_tuple(subtract_tuple(knight_pos, corner_pos['Silver 1']), corner_pos['Knight 3'])
-    gold_pos = add_tuple(subtract_tuple(silver_pos, corner_pos['Gold 1']), corner_pos['Silver 3'])
-    lance_pos = add_tuple(subtract_tuple(knight_pos, corner_pos['Lance 3']), corner_pos['Knight 1'])
-    pawn_pos = add_tuple(subtract_tuple(lance_pos, corner_pos['Pawn 3']), corner_pos['Lance 1'])
+    bishop_pos = (stand_size / 2 - corner_pos['Bishop 4'][0],
+                  stand_size / 2 - corner_pos['Bishop 4'][1])
 
-    # Other info
-    font_height = 16
+    rook_pos = (stand_size / 2 - corner_pos['Rook 5'][0],
+                stand_size / 2 - corner_pos['Rook 5'][1])
+
+    knight_pos = (stand_size / 2 - square_size / 2,
+                  stand_size * 3/4 - square_size / 2)
+
+    silver_pos = (knight_pos[0] + corner_pos['Knight 3'][0] - corner_pos['Silver 1'][0],
+                  knight_pos[1] + corner_pos['Knight 3'][1] - corner_pos['Silver 1'][1])
+
+    gold_pos = (silver_pos[0] + corner_pos['Silver 3'][0] - corner_pos['Gold 1'][0],
+                silver_pos[1] + corner_pos['Silver 3'][1] - corner_pos['Gold 1'][1])
+
+    lance_pos = (knight_pos[0] + corner_pos['Knight 1'][0] - corner_pos['Lance 3'][0],
+                 knight_pos[1] + corner_pos['Knight 1'][1] - corner_pos['Lance 3'][1])
+
+    pawn_pos = (lance_pos[0] + corner_pos['Lance 1'][0] - corner_pos['Pawn 3'][0],
+                lance_pos[1] + corner_pos['Lance 1'][1] - corner_pos['Pawn 3'][1])
 
     # States
     piece_state = [['GL0', 'GN0', 'GS0', 'GG0', 'GK0', 'GG0', 'GS0', 'GN0', 'GL0'],
@@ -204,7 +237,7 @@ def shogi_run():
         for row in range(len(piece_state)):
             for column in range(len(piece_state[row])):
                 if piece_state[row][column] != '':
-                    piece_surface.blit(pieces[piece_state[row][column]],
+                    piece_surface.blit(piece[piece_state[row][column]],
                                        (line_width + column * (line_width + square_size),
                                         line_width + row * (line_width + square_size)))
 
@@ -352,8 +385,8 @@ def shogi_run():
         if board_margin_left < x < screen_width - board_margin_right and \
                 board_margin_top < y < screen_height - board_margin_bottom:
 
-            x_index = math.floor((x - board_margin_left - line_width) / (square_size + line_width))
-            y_index = math.floor((y - board_margin_top - line_width) / (square_size + line_width))
+            x_index = int((x - board_margin_left - line_width) / (square_size + line_width))
+            y_index = int((y - board_margin_top - line_width) / (square_size + line_width))
 
             if highlight_state[y_index][x_index] == '':
                 piece_select(x_index, y_index)
@@ -372,7 +405,7 @@ def shogi_run():
 
             clear_highlight()
 
-            if check_inside('Pawn', pawn_pos):
+            if check_inside('Pawn', pawn_pos, 'S'):
                 if stand_state[0][0] > 0:
                     print('Pawn')
                     if not stand_active_state[0][0]:
@@ -382,7 +415,7 @@ def shogi_run():
                     else:
                         clear_highlight()
 
-            elif check_inside('Lance', lance_pos):
+            elif check_inside('Lance', lance_pos, 'S'):
                 if stand_state[0][1] > 0:
                     print('Lance')
                     if not stand_active_state[0][1]:
@@ -392,7 +425,7 @@ def shogi_run():
                     else:
                         clear_highlight()
 
-            elif check_inside('Knight', knight_pos):
+            elif check_inside('Knight', knight_pos, 'S'):
                 if stand_state[0][2] > 0:
                     print('Knight')
                     if not stand_active_state[0][2]:
@@ -402,7 +435,7 @@ def shogi_run():
                     else:
                         clear_highlight()
 
-            elif check_inside('Silver', silver_pos):
+            elif check_inside('Silver', silver_pos, 'S'):
                 if stand_state[0][3] > 0:
                     print('Silver')
                     if not stand_active_state[0][3]:
@@ -412,7 +445,7 @@ def shogi_run():
                     else:
                         clear_highlight()
 
-            elif check_inside('Gold', gold_pos):
+            elif check_inside('Gold', gold_pos, 'S'):
                 if stand_state[0][4] > 0:
                     print('Gold')
                     if not stand_active_state[0][4]:
@@ -422,7 +455,7 @@ def shogi_run():
                     else:
                         clear_highlight()
 
-            elif check_inside('Bishop', bishop_pos):
+            elif check_inside('Bishop', bishop_pos, 'S'):
                 if stand_state[0][5] > 0:
                     print('Bishop')
                     if not stand_active_state[0][5]:
@@ -432,12 +465,86 @@ def shogi_run():
                     else:
                         clear_highlight()
 
-            elif check_inside('Rook', rook_pos):
+            elif check_inside('Rook', rook_pos, 'S'):
                 if stand_state[0][6] > 0:
                     print('Rook')
                     if not stand_active_state[0][6]:
                         stand_active_state[0][6] = True
                         place_piece('Rook', 'S')
+
+                    else:
+                        clear_highlight()
+        elif stand_margin < x < stand_margin + stand_size and \
+                stand_margin < y < stand_margin + stand_size:
+
+            clear_highlight()
+
+            if check_inside('Pawn', pawn_pos, 'G'):
+                if stand_state[1][0] > 0:
+                    print('Pawn')
+                    if not stand_active_state[1][0]:
+                        stand_active_state[1][0] = True
+                        place_piece('Pawn', 'G')
+
+                    else:
+                        clear_highlight()
+
+            elif check_inside('Lance', lance_pos, 'G'):
+                if stand_state[1][1] > 0:
+                    print('Lance')
+                    if not stand_active_state[1][1]:
+                        stand_active_state[1][1] = True
+                        place_piece('Lance', 'G')
+
+                    else:
+                        clear_highlight()
+
+            elif check_inside('Knight', knight_pos, 'G'):
+                if stand_state[1][2] > 0:
+                    print('Knight')
+                    if not stand_active_state[1][2]:
+                        stand_active_state[1][2] = True
+                        place_piece('Knight', 'G')
+
+                    else:
+                        clear_highlight()
+
+            elif check_inside('Silver', silver_pos, 'G'):
+                if stand_state[1][3] > 0:
+                    print('Silver')
+                    if not stand_active_state[1][3]:
+                        stand_active_state[1][3] = True
+                        place_piece('Silver', 'G')
+
+                    else:
+                        clear_highlight()
+
+            elif check_inside('Gold', gold_pos, 'G'):
+                if stand_state[1][4] > 0:
+                    print('Gold')
+                    if not stand_active_state[1][4]:
+                        stand_active_state[1][4] = True
+                        place_piece('Gold', 'G')
+
+                    else:
+                        clear_highlight()
+
+            elif check_inside('Bishop', bishop_pos, 'G'):
+                if stand_state[1][5] > 0:
+                    print('Bishop')
+                    if not stand_active_state[1][5]:
+                        stand_active_state[1][5] = True
+                        place_piece('Gold', 'G')
+
+                    else:
+                        clear_highlight()
+
+            elif check_inside('Rook', rook_pos, 'G'):
+                if stand_state[1][6] > 0:
+                    print('Rook')
+                    if not stand_active_state[1][6]:
+                        stand_active_state[1][6] = True
+                        place_piece('Rook', 'G')
 
                     else:
                         clear_highlight()
@@ -516,15 +623,24 @@ def shogi_run():
                         if piece_state[row][column] == '':
                             highlight_state[row][column] = 'M'
 
-
-    def check_inside(piece_type, piece_pos):
-        return inside_poly(position[0] - board_margin_left - board_size - 2 * stand_margin,
-                       position[1] + stand_size + stand_margin - screen_height,
-                       [add_tuple(piece_pos, corner_pos[piece_type + ' 1']),
-                        add_tuple(piece_pos, corner_pos[piece_type + ' 2']),
-                        add_tuple(piece_pos, corner_pos[piece_type + ' 3']),
-                        add_tuple(piece_pos, corner_pos[piece_type + ' 4']),
-                        add_tuple(piece_pos, corner_pos[piece_type + ' 5'])])
+    def check_inside(piece_type, piece_pos, side):
+        if side == 'S':
+            return inside_poly(position[0] - board_margin_left - board_size - 2 * stand_margin,
+                           position[1] + stand_size + stand_margin - screen_height,
+                           [add_tuple(piece_pos, corner_pos[piece_type + ' 1']),
+                            add_tuple(piece_pos, corner_pos[piece_type + ' 2']),
+                            add_tuple(piece_pos, corner_pos[piece_type + ' 3']),
+                            add_tuple(piece_pos, corner_pos[piece_type + ' 4']),
+                            add_tuple(piece_pos, corner_pos[piece_type + ' 5'])])
+        elif side == 'G':
+            centre = (stand_margin + stand_size / 2, stand_margin + stand_size / 2)
+            return inside_poly(2 * centre[0] - position[0] - stand_margin,
+                               2 * centre[1] - position[1] - stand_margin,
+                               [add_tuple(piece_pos, corner_pos[piece_type + ' 1']),
+                                add_tuple(piece_pos, corner_pos[piece_type + ' 2']),
+                                add_tuple(piece_pos, corner_pos[piece_type + ' 3']),
+                                add_tuple(piece_pos, corner_pos[piece_type + ' 4']),
+                                add_tuple(piece_pos, corner_pos[piece_type + ' 5'])])
 
     def move_piece(x_index, y_index):
         active = False
@@ -548,36 +664,67 @@ def shogi_run():
 
         else:
 
-            for turn in range(len(stand_state)):
-                for piece_type in range(len(stand_state[turn])):
-                    if stand_active_state[turn][piece_type]:
-                        if piece_type == 0:
-                            piece_state[y_index][x_index] = 'SP0'
-                            piece_remove('SP0')
+            for piece_type in range(len(stand_state[0])):
+                if stand_active_state[0][piece_type]:
+                    if piece_type == 0:
+                        piece_state[y_index][x_index] = 'SP0'
+                        piece_remove('SP0')
 
-                        elif piece_type == 1:
-                            piece_state[y_index][x_index] = 'SL0'
-                            piece_remove('SL0')
+                    elif piece_type == 1:
+                        piece_state[y_index][x_index] = 'SL0'
+                        piece_remove('SL0')
 
-                        elif piece_type == 2:
-                            piece_state[y_index][x_index] = 'SN0'
-                            piece_remove('SN0')
+                    elif piece_type == 2:
+                        piece_state[y_index][x_index] = 'SN0'
+                        piece_remove('SN0')
 
-                        elif piece_type == 3:
-                            piece_state[y_index][x_index] = 'SS0'
-                            piece_remove('SS0')
+                    elif piece_type == 3:
+                        piece_state[y_index][x_index] = 'SS0'
+                        piece_remove('SS0')
 
-                        elif piece_type == 4:
-                            piece_state[y_index][x_index] = 'SG0'
-                            piece_remove('SG0')
+                    elif piece_type == 4:
+                        piece_state[y_index][x_index] = 'SG0'
+                        piece_remove('SG0')
 
-                        elif piece_type == 5:
-                            piece_state[y_index][x_index] = 'SB0'
-                            piece_remove('SB0')
+                    elif piece_type == 5:
+                        piece_state[y_index][x_index] = 'SB0'
+                        piece_remove('SB0')
 
-                        elif piece_type == 6:
-                            piece_state[y_index][x_index] = 'SR0'
-                            piece_remove('SR0')
+                    elif piece_type == 6:
+                        piece_state[y_index][x_index] = 'SR0'
+                        piece_remove('SR0')
+
+            for piece_type in range(len(stand_state[1])):
+                if stand_active_state[1][piece_type]:
+                    if piece_type == 0:
+                        piece_state[y_index][x_index] = 'GP0'
+                        piece_remove('GP0')
+
+                    elif piece_type == 1:
+                        piece_state[y_index][x_index] = 'GL0'
+                        piece_remove('GL0')
+
+                    elif piece_type == 2:
+                        piece_state[y_index][x_index] = 'GN0'
+                        piece_remove('GN0')
+
+                    elif piece_type == 3:
+                        piece_state[y_index][x_index] = 'GS0'
+                        piece_remove('GS0')
+
+                    elif piece_type == 4:
+                        piece_state[y_index][x_index] = 'GG0'
+                        piece_remove('GG0')
+
+                    elif piece_type == 5:
+                        piece_state[y_index][x_index] = 'GB0'
+                        piece_remove('GB0')
+
+                    elif piece_type == 6:
+                        piece_state[y_index][x_index] = 'SR0'
+                        piece_remove('SR0')
+
+
 
 
 
