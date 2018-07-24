@@ -510,14 +510,16 @@ def shogi_run():
     # Piece promotion
     def promotion(initial_y, final_x, final_y):
         if piece_state[final_x][final_y][0] == 'S':
-            if final_y < 3 or initial_y < 3:
-                promotion_state = True
-                piece_state[final_x][final_y] = piece_state[final_x][final_y].replace('0', '1')
+            if piece_state[final_x][final_y] != 'SK0' and piece_state[final_x][final_y] != 'SG0':
+                if final_y < 3 or initial_y < 3:
+                    promotion_state = True
+                    piece_state[final_x][final_y] = piece_state[final_x][final_y].replace('0', '1')
 
         elif piece_state[final_x][final_y][0] == 'G':
             if final_y > 5 or initial_y > 5:
-                promotion_state = True
-                piece_state[final_x][final_y] = piece_state[final_x][final_y].replace('0', '1')
+                if piece_state[final_x][final_y] != 'GK0' and piece_state[final_x][final_y] != 'GG0':
+                    promotion_state = True
+                    piece_state[final_x][final_y] = piece_state[final_x][final_y].replace('0', '1')
 
 
 
