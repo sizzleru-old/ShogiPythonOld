@@ -23,7 +23,6 @@ def shogi_run():
     # Screen
     size = screen_width, screen_height = 1620, 900
     screen = pygame.display.set_mode(size)
-    promotion_box_size = 100
 
     # Margins
     board_margin_top = 43
@@ -37,12 +36,20 @@ def shogi_run():
     stand_size = 272
     board_size = screen_width - board_margin_right - board_margin_left
     square_size = int((board_size - 10 * line_width) / 9)
+    promotion_box_size = 100
 
     # Other info
     font_height = 16
 
+    # Initializing data
+    turn = 'S'
+    mode = 'play_game'
+
     # Load board
     board_image = pygame.image.load("Others//board.png").convert()
+
+    # Load Sound
+    #move_sound = pygame.mixer.Sound("sound//move.wav")
 
     # Load promotion pictures
     promotion_box = pygame.Surface((promotion_box_size, promotion_box_size), pygame.SRCALPHA, 32).convert_alpha()
@@ -54,6 +61,8 @@ def shogi_run():
     stand_surface_sente = pygame.Surface((stand_size, stand_size), pygame.SRCALPHA, 32).convert_alpha()
     highlight_surface = pygame.Surface((board_size, board_size), pygame.SRCALPHA, 32).convert_alpha()
     promotion_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA, 32).convert_alpha()
+
+
 
     # Promotion pop-up
     promotion_box.fill((160, 82, 45, 230))
@@ -72,10 +81,12 @@ def shogi_run():
 
     highlight['A'] = pygame.Surface((square_size, square_size), pygame.SRCALPHA)  # Attack
     highlight['S'] = pygame.Surface((square_size, square_size), pygame.SRCALPHA)  # Select
+    highlight['C'] = pygame.Surface((square_size, square_size), pygame.SRCALPHA)  # Check
     highlight['M'] = pygame.image.load("Others//move.png").convert_alpha()  # Move
 
     highlight['A'].fill((255, 0, 0, 120))
     highlight['S'].fill((0, 255, 0, 120))
+    highlight['C'].fill((0, 0, 0, 120))
 
     # Pieces
     piece = dict()
@@ -111,7 +122,6 @@ def shogi_run():
 
     # Stand pieces
     stand_piece = dict()
-    stand_image = dict()
 
     stand_piece['P'] = pygame.image.load("Pieces_tilted//SP0_tilt.png")
     stand_piece['L'] = pygame.image.load("Pieces_tilted//SL0_tilt.png")
@@ -120,14 +130,6 @@ def shogi_run():
     stand_piece['G'] = pygame.image.load("Pieces_tilted//SG0_tilt.png")
     stand_piece['B'] = pygame.image.load("Pieces_tilted//SB0_tilt.png")
     stand_piece['R'] = pygame.image.load("Pieces_tilted//SR0_tilt.png")
-
-    stand_image['P'] = pygame.image.load("Pieces_tilted//SP0_tilt.png")
-    stand_image['L'] = pygame.image.load("Pieces_tilted//SL0_tilt.png")
-    stand_image['N'] = pygame.image.load("Pieces_tilted//SN0_tilt.png")
-    stand_image['S'] = pygame.image.load("Pieces_tilted//SS0_tilt.png")
-    stand_image['G'] = pygame.image.load("Pieces_tilted//SG0_tilt.png")
-    stand_image['B'] = pygame.image.load("Pieces_tilted//SB0_tilt.png")
-    stand_image['R'] = pygame.image.load("Pieces_tilted//SR0_tilt.png")
 
     # Corner info of tilted pieces
     corner_pos = dict()
@@ -202,7 +204,7 @@ def shogi_run():
                    ['GN0', 'GB0', 'GP0', '', '', '', 'SP0', 'SR0', 'SN0'],
                    ['GL0', '', 'GP0', '', '', '', 'SP0', '', 'SL0']]
 
-    promotion_state = False
+    mode = 'play_game'
 
     highlight_state = [[''] * 9,
                        [''] * 9,
@@ -271,7 +273,7 @@ def shogi_run():
         for stand_piece_type in stand_value:
             if stand_value[stand_piece_type] != 0:
                 if stand_piece_type[0] == 'S':
-                    stand_surface_sente.blit(stand_image[stand_piece_type[1]],
+                    stand_surface_sente.blit(stand_piece[stand_piece_type[1]],
                                              stand_piece_pos[stand_piece_type[1]])
 
                     display_quantity(stand_value[stand_piece_type],
@@ -281,7 +283,7 @@ def shogi_run():
 
                 elif stand_piece_type[0] == 'G':
                     if stand_piece_type[0] == 'G':
-                        stand_surface_gote.blit(stand_image[stand_piece_type[1]],
+                        stand_surface_gote.blit(stand_piece[stand_piece_type[1]],
                                                 stand_piece_pos[stand_piece_type[1]])
 
                         display_quantity(stand_value[stand_piece_type],
@@ -333,7 +335,7 @@ def shogi_run():
         screen.blit(highlight_surface, (board_margin_left, board_margin_top))
         screen.blit(piece_surface, (board_margin_left, board_margin_top))
 
-        if promotion_state:
+        if mode == 'promotion state':
             screen.blit(promotion_surface, (0, 0))
 
         pygame.display.flip()
@@ -342,63 +344,75 @@ def shogi_run():
     def square_select():
         x, y = position
 
-        # Within the board
-        if board_margin_left < x < screen_width - board_margin_right and \
-                board_margin_top < y < screen_height - board_margin_bottom:
+        if mode == 'play_game':
+            # Within the board
+            if board_margin_left < x < screen_width - board_margin_right and \
+                    board_margin_top < y < screen_height - board_margin_bottom:
 
-            x_index = int((x - board_margin_left - line_width) / (square_size + line_width))
-            y_index = int((y - board_margin_top - line_width) / (square_size + line_width))
+                x_index = int((x - board_margin_left - line_width) / (square_size + line_width))
+                y_index = int((y - board_margin_top - line_width) / (square_size + line_width))
 
-            if highlight_state[x_index][y_index] == '':
-                clear_highlight(True, True)
+                if highlight_state[x_index][y_index] == '':
+                    clear_highlight(True, True)
+                    if piece_state[x_index][y_index] != '':
+                        if piece_state[x_index][y_index][0] == turn:
+                            highlight_state[x_index][y_index] = 'S'
 
-                if piece_state[x_index][y_index] != '':
-                    highlight_state[x_index][y_index] = 'S'
+                            # Move type
+                            piece_rules(x_index, y_index)
 
-                    # Move type
-                    piece_rules(x_index, y_index)
+                elif highlight_state[x_index][y_index] == 'M':
+                    move_piece(x_index, y_index)
 
-            elif highlight_state[x_index][y_index] == 'M':
-                move_piece(x_index, y_index)
+                elif highlight_state[x_index][y_index] == 'A':
+                    piece_add(piece_state[x_index][y_index])
+                    move_piece(x_index, y_index)
 
-            elif highlight_state[x_index][y_index] == 'A':
-                piece_add(piece_state[x_index][y_index])
-                move_piece(x_index, y_index)
+                elif highlight_state[x_index][y_index] == 'S':
+                    clear_highlight(True, True)
 
-            elif highlight_state[x_index][y_index] == 'S':
-                clear_highlight(True, True)
+            # Sente stand
+            elif screen_width - board_margin_right + 2 * stand_margin < x < screen_width - stand_margin and \
+                    screen_height - stand_size - stand_margin < y < screen_height - stand_margin:
 
-        # Sente stand
-        elif screen_width - board_margin_right + 2 * stand_margin < x < screen_width - stand_margin and \
-                screen_height - stand_size - stand_margin < y < screen_height - stand_margin:
+                for piece_type in stand_value:
+                    if piece_type[0] == 'S':
+                        if check_inside(piece_type[1], stand_piece_pos[piece_type[1]], 'S'):
+                            if turn == 'S':
+                                if stand_value[piece_type[:2]] != 0:
+                                    if not stand_active[piece_type]:
+                                        stand_active[piece_type] = True
+                                        place_piece(piece_type)
 
-            for piece_type in stand_value:
-                if piece_type[0] == 'S':
-                    if check_inside(piece_type[1], stand_piece_pos[piece_type[1]], 'S'):
-                        if stand_value[piece_type[:2]] != 0:
-                            print(piece_type[1])
-                            if not stand_active[piece_type]:
-                                stand_active[piece_type] = True
-                                place_piece(piece_type)
+                                    else:
+                                        clear_highlight(True, True)
 
-                            else:
-                                clear_highlight(True, True)
+            # Gote stand
+            elif stand_margin < x < stand_margin + stand_size and \
+                    stand_margin < y < stand_margin + stand_size:
 
-        # Gote stand
-        elif stand_margin < x < stand_margin + stand_size and \
-                stand_margin < y < stand_margin + stand_size:
+                for piece_type in stand_value:
+                    if piece_type[0] == 'G':
+                        if check_inside(piece_type[1], stand_piece_pos[piece_type[1]], 'G'):
+                            if turn == 'G':
+                                if stand_value[piece_type[:2]] != 0:
+                                    if not stand_active[piece_type]:
+                                        stand_active[piece_type] = True
+                                        place_piece(piece_type)
 
-            for piece_type in stand_value:
-                if piece_type[0] == 'G':
-                    if check_inside(piece_type[1], stand_piece_pos[piece_type[1]], 'G'):
-                        if stand_value[piece_type[:2]] != 0:
-                            print(piece_type[1])
-                            if not stand_active[piece_type]:
-                                stand_active[piece_type] = True
-                                place_piece(piece_type)
+                                    else:
+                                        clear_highlight(True, True)
 
-                            else:
-                                clear_highlight(True, True)
+        elif mode == 'promotion':
+
+            if screen_width / 3 - promotion_box_size / 2 < x < screen_width / 3 + promotion_box_size / 2 and \
+                    0.5 * (screen_height - promotion_box_size) < y < 0.5 * (screen_height + promotion_box_size):
+                print('left')
+
+            elif screen_width * 2 / 3 - promotion_box_size / 2 < x < screen_width * 2 / 3 + promotion_box_size / 2 and \
+                    0.5 * (screen_height - promotion_box_size) < y < 0.5 * (screen_height + promotion_box_size):
+                print('right')
+                piece_state[final_x][final_y] = piece_state[final_x][final_y].replace('0', '1')
 
     # If the piece is clicked
     def check_inside(piece_type, piece_pos, side):
@@ -494,16 +508,29 @@ def shogi_run():
                     x_active = column
                     y_active = row
                     active = True
-
+        
         if active:
             piece_state[x_index][y_index], piece_state[x_active][y_active] = piece_state[x_active][y_active], ''
+            #pygame.mixer.Sound.play(move_sound)
             promotion(y_active, x_index, y_index)
+
+            nonlocal turn
+            if turn == 'S':
+                turn = 'G'
+
+            elif turn == 'G':
+                turn = 'S'
 
         else:
             for piece_active in stand_active:
                 if stand_active[piece_active]:
                     piece_state[x_index][y_index] = piece_active + '0'
                     stand_value[piece_active[:2]] -= 1
+                    if turn == 'S':
+                        turn = 'G'
+
+                    elif turn == 'G':
+                        turn = 'S'
 
         clear_highlight(True, True)
 
@@ -512,17 +539,29 @@ def shogi_run():
         if piece_state[final_x][final_y][0] == 'S':
             if piece_state[final_x][final_y] != 'SK0' and piece_state[final_x][final_y] != 'SG0':
                 if final_y < 3 or initial_y < 3:
-                    promotion_state = True
                     piece_state[final_x][final_y] = piece_state[final_x][final_y].replace('0', '1')
+
+                    '''
+                    #TODO
+                    promotion_surface.blit(piece[piece_state[final_x][final_y]],
+                                           (screen_width / 3 - square_size / 2,
+                                            (screen_height - square_size) / 2))
+
+                    promotion_surface.blit(piece[piece_state[final_x][final_y]],
+                                           (screen_width * 2 / 3 - square_size / 2,
+                                            (screen_height - square_size) / 2))
+
+                    screen.blit(promotion_surface, (0, 0))
+                    nonlocal mode
+                    mode = 'promotion'
+                    '''
 
         elif piece_state[final_x][final_y][0] == 'G':
             if final_y > 5 or initial_y > 5:
                 if piece_state[final_x][final_y] != 'GK0' and piece_state[final_x][final_y] != 'GG0':
-                    promotion_state = True
+                    
                     piece_state[final_x][final_y] = piece_state[final_x][final_y].replace('0', '1')
-
-
-
+    
     # Add piece
     def piece_add(piece_taken):
         if piece_taken[0] == 'G':
@@ -542,7 +581,7 @@ def shogi_run():
 
         # Pawn
         if piece_state[x_index][y_index][1:] == 'P0':
-            piece_move_highlight([[(x_index, y_index - move)]], piece_state[x_index][y_index][0])
+            piece_move_highlight([[(x_index, y_index - move)]])
 
         # Sente Rook
         elif piece_state[x_index][y_index][1] == 'R':
@@ -599,8 +638,7 @@ def shogi_run():
                                   rule_left_up,
                                   rule_right_up,
                                   rule_left_down,
-                                  rule_right_down],
-                                 piece_state[x_index][y_index][0])
+                                  rule_right_down])
 
         # Bishop
         elif piece_state[x_index][y_index][1] == 'B':
@@ -662,7 +700,7 @@ def shogi_run():
                                   rule_right,
                                   rule_down,
                                   rule_up],
-                                 piece_state[x_index][y_index][0])
+                                 )
 
         # Lance
         elif piece_state[x_index][y_index][1:] == 'L0':
@@ -675,13 +713,13 @@ def shogi_run():
                 y_move -= move
                 rule_up.append((x_index, y_move))
 
-            piece_move_highlight([rule_up], piece_state[x_index][y_index][0])
+            piece_move_highlight([rule_up])
 
         # Knight
         elif piece_state[x_index][y_index][1:] == 'N0':
 
             piece_move_highlight([[(x_index - 1, y_index - 2 * move)],
-                                  [(x_index + 1, y_index - 2 * move)]], piece_state[x_index][y_index][0])
+                                  [(x_index + 1, y_index - 2 * move)]])
 
         # Silver
         elif piece_state[x_index][y_index][1:] == 'S0':
@@ -691,7 +729,7 @@ def shogi_run():
                                   [(x_index + 1, y_index - move)],
                                   [(x_index - 1, y_index + move)],
                                   [(x_index + 1, y_index + move)]],
-                                 piece_state[x_index][y_index][0])
+                                 )
 
         # Gold
         elif piece_state[x_index][y_index][1:] in ['G0', 'P1', 'L1', 'N1', 'S1']:
@@ -702,7 +740,7 @@ def shogi_run():
                                   [(x_index - 1, y_index)],
                                   [(x_index + 1, y_index)],
                                   [(x_index, y_index + move)]],
-                                 piece_state[x_index][y_index][0])
+                                 )
 
         # King
         elif piece_state[x_index][y_index][1:] == 'K0':
@@ -715,10 +753,10 @@ def shogi_run():
                                   [(x_index + 1, y_index + 1)],
                                   [(x_index, y_index + 1)],
                                   [(x_index - 1, y_index + 1)],
-                                  [(x_index - 1, y_index)]], piece_state[x_index][y_index][0])
+                                  [(x_index - 1, y_index)]])
 
     # Highlight possible moves
-    def piece_move_highlight(possible_moves, turn):
+    def piece_move_highlight(possible_moves):
         for path in possible_moves:
             for pos in path:
                 if -1 < pos[1] < 9 and -1 < pos[0] < 9:
